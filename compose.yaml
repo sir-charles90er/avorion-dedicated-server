@@ -1,0 +1,33 @@
+name: avorion
+
+services:
+  avorion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: local/avorion-dedicated:latest
+    container_name: avorion
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    ports:
+      - "${SERVER_PORT:-27000}:${SERVER_PORT:-27000}/tcp"
+      - "${SERVER_PORT:-27000}:${SERVER_PORT:-27000}/udp"
+      - "27003:27003/udp"
+      - "27020:27020/udp"
+      - "27021:27021/udp"
+
+    volumes:
+      - ./data/server:/opt/avorion
+      - ./data/galaxies:/var/lib/avorion/galaxies
+
+    stop_grace_period: 3m
+
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /tmp/avorion-server.pid && kill -0 $$(cat /tmp/avorion-server.pid) 2>/dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 5m
